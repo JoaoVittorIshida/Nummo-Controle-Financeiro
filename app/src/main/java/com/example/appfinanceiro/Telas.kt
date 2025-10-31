@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -290,7 +291,7 @@ fun TelaNovoLancamento(
 // ----- TELA DE CRIAR CONTA -----
 @Composable
 fun TelaCriarConta(
-    viewModel: AuthViewModel, // Recebe o Cérebro de Auth
+    viewModel: AuthViewModel,
     onContaCriada: () -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -330,7 +331,17 @@ fun TelaCriarConta(
                 valor = viewModel.confirmarSenha, // Lendo do VM
                 onValorChange = { viewModel.confirmarSenha = it } // Escrevendo no VM
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Exibe a mensagem de erro aqui
+            viewModel.mensagemErro?.let { mensagem ->
+                Text(
+                    text = mensagem,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -348,7 +359,6 @@ fun TelaCriarConta(
             Button(
                 onClick = {
                     viewModel.onCriarContaClick() // Avisa o VM
-                    onContaCriada() // Avisa a Navegação
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
@@ -361,9 +371,12 @@ fun TelaCriarConta(
 // ----- TELA DE DESBLOQUEIO (LOGIN) -----
 @Composable
 fun TelaDesbloqueio(
-    viewModel: AuthViewModel, // Recebe o Cérebro de Auth
+    viewModel: AuthViewModel,
     onDesbloqueado: () -> Unit
 ) {
+    // Coleta o primeiro usuário como estado para reagir a mudanças
+    val primeiroUsuario by viewModel.primeiroUsuario.collectAsState()
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -374,21 +387,25 @@ fun TelaDesbloqueio(
             Text( "App bloqueado por segurança.", style = MaterialTheme.typography.bodyMedium )
             Spacer(modifier = Modifier.height(32.dp))
 
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = "Desbloquear com digital",
-                modifier = Modifier.size(128.dp).clickable {
-                    viewModel.onBiometriaClick() // Avisa o VM
-                    onDesbloqueado() // Atalho de design
-                },
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                "Toque no cadeado para usar a digital",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center
-            )
+            // Oculta o botão se o usuário não optou pela biometria
+            if (primeiroUsuario?.digital == true) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = "Desbloquear com digital",
+                    modifier = Modifier
+                        .size(128.dp)
+                        .clickable {
+                            viewModel.onBiometriaClick() // Avisa o VM
+                        },
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    "Toque no cadeado para usar a digital",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
             Text("... ou digite seu PIN ...")
@@ -396,15 +413,30 @@ fun TelaDesbloqueio(
 
             CampoSenhaTextField(
                 label = "Seu PIN",
-                valor = viewModel.pinDigitado, // Lendo do VM
-                onValorChange = { viewModel.pinDigitado = it } // Escrevendo no VM
+                valor = viewModel.pinDigitado,
+                onValorChange = {
+                    viewModel.pinDigitado = it
+                    // Limpa a mensagem de erro quando o usuário digita
+                    if (viewModel.mensagemErro != null) {
+                        viewModel.mensagemErro = null
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Exibe a mensagem de erro de login
+            viewModel.mensagemErro?.let { mensagem ->
+                Text(
+                    text = mensagem,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             Button(
                 onClick = {
-                    viewModel.onDesbloquearClick() // Avisa o VM
-                    onDesbloqueado() // Avisa a Navegação
+                    viewModel.onDesbloquearClick(onSuccess = onDesbloqueado)
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {

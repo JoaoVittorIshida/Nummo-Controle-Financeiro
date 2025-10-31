@@ -14,7 +14,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel // IMPORTANTE
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.ui.theme.AppFinanceiroTheme
 
 class MainActivity : ComponentActivity() {
@@ -35,26 +35,27 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ControladorDeNavegacao(
-    // O ViewModel de Auth é criado aqui e controlado pelo Controlador
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    // Simulando a lógica de login (o dev vai trocar isso por uma checagem real)
-    val simulacaoUsuarioJaCadastrado = false
-
-    var usuarioCadastrado by remember { mutableStateOf(simulacaoUsuarioJaCadastrado) }
+    val primeiroUsuario by authViewModel.primeiroUsuario.collectAsState()
     var appDesbloqueado by remember { mutableStateOf(false) }
 
+    // Garante que, se o usuário for removido, o app bloqueie novamente
+    LaunchedEffect(primeiroUsuario) {
+        if (primeiroUsuario == null) {
+            appDesbloqueado = false
+        }
+    }
 
-    if (!usuarioCadastrado) {
+    if (primeiroUsuario == null) {
         // Passa o ViewModel para a TelaCriarConta
         TelaCriarConta(
             viewModel = authViewModel,
             onContaCriada = {
-                usuarioCadastrado = true
-                appDesbloqueado = true
+                // Apenas navegar já é suficiente, o `primeiroUsuario` vai mudar
             }
         )
-    } else if (usuarioCadastrado && !appDesbloqueado) {
+    } else if (!appDesbloqueado) {
         // Passa o mesmo ViewModel para a TelaDesbloqueio
         TelaDesbloqueio(
             viewModel = authViewModel,
@@ -63,8 +64,6 @@ fun ControladorDeNavegacao(
             }
         )
     } else {
-        // Quando o login passa, chama o AppPrincipal
-        // O MainViewModel será criado DENTRO do AppPrincipal
         AppPrincipal()
     }
 }
@@ -73,14 +72,12 @@ fun ControladorDeNavegacao(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppPrincipal(
-    // O AppPrincipal cria e gerencia o Cérebro Principal
     viewModel: MainViewModel = viewModel()
 ) {
     Scaffold(
         floatingActionButton = {
-            // Lendo o estado de navegação direto do ViewModel
             if (viewModel.abaSelecionada == 0 && !viewModel.exibeModalNovoLancamento) {
-                FloatingActionButton(onClick = { viewModel.onFabClick() }) { // Avisa o VM
+                FloatingActionButton(onClick = { viewModel.onFabClick() }) {
                     Icon(Icons.Default.Add, contentDescription = "Adicionar Lançamento")
                 }
             }
@@ -98,26 +95,24 @@ fun AppPrincipal(
                             }
                         },
                         label = { Text(texto) },
-                        selected = viewModel.abaSelecionada == index, // Lendo do VM
-                        onClick = { viewModel.onAbaSelecionada(index) } // Avisando o VM
+                        selected = viewModel.abaSelecionada == index,
+                        onClick = { viewModel.onAbaSelecionada(index) }
                     )
                 }
             }
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            // O "when" agora lê o estado do ViewModel
             when (viewModel.abaSelecionada) {
                 0 -> TelaInicio(viewModel = viewModel)
                 1 -> TelaExtrato(viewModel = viewModel)
                 2 -> TelaConversor(viewModel = viewModel)
             }
 
-            // O modal também lê o estado do ViewModel
             if (viewModel.exibeModalNovoLancamento) {
                 TelaNovoLancamento(
                     viewModel = viewModel,
-                    onFechar = { viewModel.onFecharModal() } // Avisa o VM
+                    onFechar = { viewModel.onFecharModal() }
                 )
             }
         }
