@@ -14,10 +14,11 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.ui.theme.AppFinanceiroTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -26,7 +27,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ControladorDeNavegacao()
+                    ControladorDeNavegacao(activity = this)
                 }
             }
         }
@@ -35,12 +36,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ControladorDeNavegacao(
+    activity: FragmentActivity? = null,
     authViewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val primeiroUsuario by authViewModel.primeiroUsuario.collectAsState()
     var appDesbloqueado by remember { mutableStateOf(false) }
 
-    // Garante que, se o usuário for removido, o app bloqueie novamente
     LaunchedEffect(primeiroUsuario) {
         if (primeiroUsuario == null) {
             appDesbloqueado = false
@@ -48,16 +49,16 @@ fun ControladorDeNavegacao(
     }
 
     if (primeiroUsuario == null) {
-        // Passa o ViewModel para a TelaCriarConta
         TelaCriarConta(
             viewModel = authViewModel,
             onContaCriada = {
-                // Apenas navegar já é suficiente, o `primeiroUsuario` vai mudar
+                // ...
             }
         )
     } else if (!appDesbloqueado) {
-        // Passa o mesmo ViewModel para a TelaDesbloqueio
+        // --- CORREÇÃO 2: Passar a activity adiante ---
         TelaDesbloqueio(
+            activity = activity, // Passe a activity recebida
             viewModel = authViewModel,
             onDesbloqueado = {
                 appDesbloqueado = true
@@ -67,7 +68,6 @@ fun ControladorDeNavegacao(
         AppPrincipal()
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

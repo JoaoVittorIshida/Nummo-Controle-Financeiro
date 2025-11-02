@@ -27,16 +27,14 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun CardLancamento(
-    tipo: String, // "Receita" ou "Despesa"
+    tipo: String, //"Receita" ou "Despesa"
     descricao: String,
     data: String,
     valor: Double
 ) {
     val (corValor, icone) = if (tipo == "Receita") {
-        // MUDANÇA AQUI:
         Pair(Color(0xFF2E8B57), Icons.Default.KeyboardArrowUp)
     } else {
-        // MUDANÇA AQUI:
         Pair(Color(0xFFD94350), Icons.Default.KeyboardArrowDown)
     }
 

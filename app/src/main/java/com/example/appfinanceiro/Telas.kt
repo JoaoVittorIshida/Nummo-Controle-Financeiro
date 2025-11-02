@@ -1,5 +1,9 @@
 package com.example.appfinanceiro
 
+
+import android.content.Context
+import android.content.ContextWrapper
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +29,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
 
 // ----- DADOS FALSOS (agora só para os Previews) -----
 data class Lancamento(val id: Int, val tipo: String, val desc: String, val data: String, val valor: Double)
@@ -35,6 +41,12 @@ val listaCompletaFalsa = listOf(
     Lancamento(1, "Receita", "Salário", "28/10", 3500.0),
     Lancamento(2, "Despesa", "Aluguel", "27/10", 1200.0)
 )
+
+fun Context.findFragmentActivity(): FragmentActivity? {
+    return this as? FragmentActivity
+}
+
+
 
 // ----- TELA 1: INÍCIO (DASHBOARD) -----
 @Composable
@@ -371,6 +383,7 @@ fun TelaCriarConta(
 // ----- TELA DE DESBLOQUEIO (LOGIN) -----
 @Composable
 fun TelaDesbloqueio(
+    activity: FragmentActivity?,
     viewModel: AuthViewModel,
     onDesbloqueado: () -> Unit
 ) {
@@ -387,7 +400,6 @@ fun TelaDesbloqueio(
             Text( "App bloqueado por segurança.", style = MaterialTheme.typography.bodyMedium )
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Oculta o botão se o usuário não optou pela biometria
             if (primeiroUsuario?.digital == true) {
                 Icon(
                     imageVector = Icons.Default.Lock,
@@ -395,7 +407,14 @@ fun TelaDesbloqueio(
                     modifier = Modifier
                         .size(128.dp)
                         .clickable {
-                            viewModel.onBiometriaClick() // Avisa o VM
+                            if (activity != null) {
+                                viewModel.onBiometriaClick(
+                                    activity = activity,
+                                    onSuccess = onDesbloqueado
+                                )
+                            } else {
+                                viewModel.mensagemErro = "Não foi possível iniciar a biometria"
+                            }
                         },
                     tint = MaterialTheme.colorScheme.primary
                 )
@@ -589,7 +608,15 @@ fun CampoSenhaTextField(
     AppFinanceiroTheme { TelaCriarConta(viewModel(), onContaCriada = {}) }
 }
 @Preview(showBackground = true) @Composable fun PreviewTelaDesbloqueio() {
-    AppFinanceiroTheme { TelaDesbloqueio(viewModel(), onDesbloqueado = {}) }
+    AppFinanceiroTheme {
+        val viewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory)
+
+        TelaDesbloqueio(
+            activity = null,
+            viewModel = viewModel,
+            onDesbloqueado = {}
+        )
+    }
 }
 @Preview(showBackground = true) @Composable fun PreviewTelaInicioSimples() {
     AppFinanceiroTheme { TelaInicio(viewModel()) }

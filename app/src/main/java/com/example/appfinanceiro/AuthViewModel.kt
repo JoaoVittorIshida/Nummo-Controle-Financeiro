@@ -1,5 +1,9 @@
 package com.example.appfinanceiro
 
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,15 +19,12 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(private val usuarioRepository: UsuarioRepository) : ViewModel() {
 
-    // --- Estados para a TelaCriarConta ---
     var nome by mutableStateOf("")
     var senha by mutableStateOf("")
     var confirmarSenha by mutableStateOf("")
     var usarBiometria by mutableStateOf(true)
     var mensagemErro by mutableStateOf<String?>(null)
-        // O setter é público para que a UI possa limpá-lo
 
-    // --- Estados para a TelaDesbloqueio ---
     var pinDigitado by mutableStateOf("")
 
     val primeiroUsuario: StateFlow<Usuario?> = usuarioRepository.primeiroUsuario.stateIn(
@@ -32,7 +33,6 @@ class AuthViewModel(private val usuarioRepository: UsuarioRepository) : ViewMode
         initialValue = null
     )
 
-    // --- Eventos (Lógica que o Dev vai implementar) ---
     fun onCriarContaClick() {
         if (nome.isBlank() || senha.isBlank() || confirmarSenha.isBlank()) {
             mensagemErro = "Todos os campos são obrigatórios."
@@ -47,7 +47,7 @@ class AuthViewModel(private val usuarioRepository: UsuarioRepository) : ViewMode
             return
         }
 
-        // Se todas as validações passaram, limpa a mensagem de erro e insere o usuário
+        //Se todas as validações passaram, limpa a mensagem de erro e insere o usuário
         mensagemErro = null
         viewModelScope.launch {
             val novoUsuario = Usuario(
@@ -68,7 +68,52 @@ class AuthViewModel(private val usuarioRepository: UsuarioRepository) : ViewMode
         }
     }
 
-    fun onBiometriaClick() {
-        // TODO: O dev de lógica vai chamar o sensor de biometria aqui
+    fun onBiometriaClick(activity: FragmentActivity, onSuccess: () -> Unit) {
+
+        // 1. Executor (necessário para o callback)
+        val executor = ContextCompat.getMainExecutor(activity)
+
+        // 2. Callback (o que fazer em caso de sucesso ou erro)
+        val callback = object : BiometricPrompt.AuthenticationCallback() {
+
+            // SUCESSO
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                mensagemErro = null
+                onSuccess()
+            }
+
+            // ERRO
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                if (errorCode != BiometricPrompt.ERROR_USER_CANCELED) {
+                    mensagemErro = "Erro na validação da biometria"
+                }
+            }
+        }
+
+        val biometricPrompt = BiometricPrompt(activity, executor, callback)
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Autenticação")
+            .setSubtitle("Use sua digital para desbloquear o app")
+            .setNegativeButtonText("Cancelar")
+            .build()
+
+        val biometricManager = BiometricManager.from(activity)
+        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+
+            BiometricManager.BIOMETRIC_SUCCESS ->
+                biometricPrompt.authenticate(promptInfo)
+
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED ->
+                mensagemErro = "Nenhuma biometria cadastrada neste dispositivo."
+
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE ->
+                mensagemErro = "Este dispositivo não possui sensor biométrico."
+
+            else ->
+                mensagemErro = "Sensor biométrico indisponível ou com erro."
+        }
     }
 }
