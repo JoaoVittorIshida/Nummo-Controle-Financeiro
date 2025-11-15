@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.ui.theme.AppFinanceiroTheme
+import com.example.appfinanceiro.viewmodel.AuthViewModel
+import com.example.appfinanceiro.viewmodel.MainViewModel
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,7 +74,7 @@ fun ControladorDeNavegacao(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppPrincipal(
-    viewModel: MainViewModel = viewModel()
+    viewModel: MainViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     Scaffold(
         floatingActionButton = {

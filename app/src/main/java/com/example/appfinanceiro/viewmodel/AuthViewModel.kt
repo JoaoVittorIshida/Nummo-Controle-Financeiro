@@ -1,19 +1,18 @@
-package com.example.appfinanceiro
+package com.example.appfinanceiro.viewmodel
 
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.data.entity.Usuario
 import com.example.appfinanceiro.data.repository.UsuarioRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -29,7 +28,7 @@ class AuthViewModel(private val usuarioRepository: UsuarioRepository) : ViewMode
 
     val primeiroUsuario: StateFlow<Usuario?> = usuarioRepository.primeiroUsuario.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.Companion.WhileSubscribed(5_000),
         initialValue = null
     )
 

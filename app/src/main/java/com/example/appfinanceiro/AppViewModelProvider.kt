@@ -5,13 +5,24 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.appfinanceiro.data.FinanceiroApplication
-import com.example.appfinanceiro.data.repository.UsuarioRepository
+import com.example.appfinanceiro.viewmodel.AuthViewModel
+import com.example.appfinanceiro.viewmodel.MainViewModel
 
 object AppViewModelProvider {
+
     val Factory = viewModelFactory {
+
+        // AuthViewModel
         initializer {
             AuthViewModel(
                 usuarioRepository = financeiroApplication().container.usuarioRepository
+            )
+        }
+
+        // MainViewModel
+        initializer {
+            MainViewModel(
+                lancamentoRepository = financeiroApplication().container.lancamentoRepository
             )
         }
     }

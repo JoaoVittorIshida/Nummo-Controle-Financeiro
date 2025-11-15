@@ -1,10 +1,12 @@
 package com.example.appfinanceiro
 
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.ContextWrapper
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,19 +30,14 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
+import com.example.appfinanceiro.viewmodel.AuthViewModel
+import com.example.appfinanceiro.viewmodel.MainViewModel
+import java.util.Calendar
 
-// ----- DADOS FALSOS (agora só para os Previews) -----
-data class Lancamento(val id: Int, val tipo: String, val desc: String, val data: String, val valor: Double)
-val listaDeLancamentosFalsa = listOf(
-    Lancamento(1, "Receita", "Salário", "28/10", 3500.0)
-)
-val listaCompletaFalsa = listOf(
-    Lancamento(1, "Receita", "Salário", "28/10", 3500.0),
-    Lancamento(2, "Despesa", "Aluguel", "27/10", 1200.0)
-)
 
 fun Context.findFragmentActivity(): FragmentActivity? {
     return this as? FragmentActivity
@@ -51,8 +48,10 @@ fun Context.findFragmentActivity(): FragmentActivity? {
 // ----- TELA 1: INÍCIO (DASHBOARD) -----
 @Composable
 fun TelaInicio(
-    viewModel: MainViewModel // Recebe o Cérebro
+    viewModel: MainViewModel
 ) {
+    val lista3Lancamentos by viewModel.listaDe3Lancamentos.collectAsState()
+    val saldoMes by viewModel.saldoDoMes.collectAsState()
     LazyColumn(
         modifier = Modifier.padding(16.dp)
     ) {
@@ -61,11 +60,13 @@ fun TelaInicio(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Saldo do Mês", style = MaterialTheme.typography.titleMedium)
-                    Text("R$ 1.850,00", style = MaterialTheme.typography.displaySmall) // O dev vai ligar isso no VM
+                    Text("R$ %.2f".format(saldoMes), style = MaterialTheme.typography.displaySmall)
                 }
             }
         }
@@ -76,11 +77,10 @@ fun TelaInicio(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
-        // Lendo a lista direto do ViewModel
-        items(viewModel.listaDeLancamentos) { lancamento ->
+        items(lista3Lancamentos) { lancamento ->
             CardLancamento(
                 tipo = lancamento.tipo,
-                descricao = lancamento.desc,
+                descricao = lancamento.descricao,
                 data = lancamento.data,
                 valor = lancamento.valor
             )
@@ -88,22 +88,22 @@ fun TelaInicio(
     }
 }
 
+
 // ----- TELA 2: EXTRATO (COM FILTROS) -----
 @Composable
 fun TelaExtrato(
-    viewModel: MainViewModel // Recebe o Cérebro
+    viewModel: MainViewModel
 ) {
+    val listaLancamentosCompleta by viewModel.listaCompleta.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         Text("Extrato Completo", style = MaterialTheme.typography.headlineMedium)
-
         Spacer(modifier = Modifier.height(16.dp))
         Text("Filtrar por:", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -111,35 +111,35 @@ fun TelaExtrato(
             DropdownFiltro(
                 label = "Mês",
                 opcoes = listOf("Setembro", "Outubro", "Novembro"),
-                selecionado = viewModel.filtroMes, // Lendo do VM
-                onSelect = { viewModel.filtroMes = it }, // Escrevendo no VM
+                selecionado = viewModel.filtroMes,
+                onSelect = { viewModel.filtroMes = it },
                 modifier = Modifier.weight(1f)
             )
             DropdownFiltro(
                 label = "Ano",
                 opcoes = listOf("2024", "2025"),
-                selecionado = viewModel.filtroAno, // Lendo do VM
-                onSelect = { viewModel.filtroAno = it }, // Escrevendo no VM
+                selecionado = viewModel.filtroAno,
+                onSelect = { viewModel.filtroAno = it },
                 modifier = Modifier.weight(1f)
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-
         SeletorFiltroTipo(
-            selecionado = viewModel.filtroTipo, // Lendo do VM
-            onTipoChange = { viewModel.filtroTipo = it } // Escrevendo no VM
+            selecionado = viewModel.filtroTipo,
+            onTipoChange = { viewModel.filtroTipo = it }
         )
-
-        Divider(modifier = Modifier.padding(vertical = 16.dp))
-
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            thickness = DividerDefaults.Thickness,
+            color = DividerDefaults.color
+        )
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // O dev de lógica vai fazer o VM filtrar esta lista
-            items(viewModel.listaCompleta) { lancamento ->
+            items(listaLancamentosCompleta) { lancamento ->
                 CardLancamento(
                     tipo = lancamento.tipo,
-                    descricao = lancamento.desc,
+                    descricao = lancamento.descricao,
                     data = lancamento.data,
                     valor = lancamento.valor
                 )
@@ -147,6 +147,7 @@ fun TelaExtrato(
         }
     }
 }
+
 
 // ----- TELA 3: CONVERSOR -----
 @OptIn(ExperimentalMaterial3Api::class)
@@ -226,9 +227,35 @@ fun TelaConversor(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaNovoLancamento(
-    viewModel: MainViewModel, // Recebe o Cérebro principal
+    viewModel: MainViewModel,
     onFechar: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    // Resetar o formulário quando abrir a tela
+    LaunchedEffect(Unit) {
+        viewModel.resetarFormulario()
+    }
+
+    // Criando um calendar com a data atual do formData
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = viewModel.formData
+    }
+    val ano = calendar.get(Calendar.YEAR)
+    val mes = calendar.get(Calendar.MONTH)
+    val dia = calendar.get(Calendar.DAY_OF_MONTH)
+
+    // ---- DatePicker Nativo ----
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val c = Calendar.getInstance()
+            c.set(year, month, dayOfMonth)
+            viewModel.formData = c.timeInMillis
+        },
+        ano, mes, dia
+    )
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -238,6 +265,7 @@ fun TelaNovoLancamento(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            // Cabeçalho
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -248,57 +276,91 @@ fun TelaNovoLancamento(
                     Icon(Icons.Default.Close, contentDescription = "Fechar")
                 }
             }
+
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Seletor de tipo
             SeletorDeTipo(
-                tipoSelecionado = viewModel.formTipo, // Lendo do VM
-                onTipoChange = { viewModel.formTipo = it } // Escrevendo no VM
+                tipoSelecionado = viewModel.formTipo,
+                onTipoChange = { viewModel.formTipo = it }
             )
+
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Valor
             OutlinedTextField(
-                value = viewModel.formValor, // Lendo do VM
-                onValueChange = { viewModel.formValor = it }, // Escrevendo no VM
+                value = viewModel.formValor,
+                onValueChange = { viewModel.formValor = it },
                 label = { Text("Valor (R$)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Descrição
             OutlinedTextField(
-                value = viewModel.formDescricao, // Lendo do VM
-                onValueChange = { viewModel.formDescricao = it }, // Escrevendo no VM
+                value = viewModel.formDescricao,
+                onValueChange = { viewModel.formDescricao = it },
                 label = { Text("Descrição") },
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = viewModel.formData, // Lendo do VM
-                onValueChange = { viewModel.formData = it }, // Escrevendo no VM
-                label = { Text("Data") },
-                trailingIcon = { Icon(Icons.Default.Edit, "Editar Data") },
-                modifier = Modifier.fillMaxWidth().clickable { /* TODO: Abrir DatePicker */ }
-            )
+            // Campo de Data - abre o DatePicker nativo
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .clickable { datePickerDialog.show() }
+            ) {
+                OutlinedTextField(
+                    value = viewModel.formatarData(viewModel.formData),
+                    onValueChange = {},
+                    label = { Text("Data") },
+                    readOnly = true,
+                    trailingIcon = { Icon(Icons.Default.Edit, contentDescription = "Editar Data") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledBorderColor = MaterialTheme.colorScheme.outline,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Observações
             OutlinedTextField(
-                value = viewModel.formObservacoes, // Lendo do VM
-                onValueChange = { viewModel.formObservacoes = it }, // Escrevendo no VM
+                value = viewModel.formObservacoes,
+                onValueChange = { viewModel.formObservacoes = it },
                 label = { Text("Observações (Opcional)") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.weight(1f))
+
+            // Botão Salvar
             Button(
-                onClick = { viewModel.onSalvarLancamento() }, // Avisa o VM
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                onClick = { viewModel.onSalvarLancamento() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
             ) {
                 Text("SALVAR LANÇAMENTO")
             }
         }
     }
 }
+
+
+
+
+
+
 
 // ----- TELA DE CRIAR CONTA -----
 @Composable
@@ -345,7 +407,6 @@ fun TelaCriarConta(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Exibe a mensagem de erro aqui
             viewModel.mensagemErro?.let { mensagem ->
                 Text(
                     text = mensagem,
