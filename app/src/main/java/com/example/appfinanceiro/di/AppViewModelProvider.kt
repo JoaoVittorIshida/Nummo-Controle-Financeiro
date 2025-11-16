@@ -1,10 +1,10 @@
-package com.example.appfinanceiro
+package com.example.appfinanceiro.di
 
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.appfinanceiro.data.FinanceiroApplication
+import com.example.appfinanceiro.di.FinanceiroApplication
 import com.example.appfinanceiro.viewmodel.AuthViewModel
 import com.example.appfinanceiro.viewmodel.MainViewModel
 

@@ -1,7 +1,6 @@
 package com.example.appfinanceiro
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.di.AppViewModelProvider
+import com.example.appfinanceiro.screens.TelaConversor
+import com.example.appfinanceiro.screens.TelaCriarConta
+import com.example.appfinanceiro.screens.TelaDesbloqueio
+import com.example.appfinanceiro.screens.TelaExtrato
+import com.example.appfinanceiro.screens.TelaFormularioLancamento
+import com.example.appfinanceiro.screens.TelaInicio
 import com.example.appfinanceiro.ui.theme.AppFinanceiroTheme
 import com.example.appfinanceiro.viewmodel.AuthViewModel
 import com.example.appfinanceiro.viewmodel.MainViewModel
@@ -52,15 +58,11 @@ fun ControladorDeNavegacao(
 
     if (primeiroUsuario == null) {
         TelaCriarConta(
-            viewModel = authViewModel,
-            onContaCriada = {
-                // ...
-            }
+            viewModel = authViewModel
         )
     } else if (!appDesbloqueado) {
-        // --- CORREÇÃO 2: Passar a activity adiante ---
         TelaDesbloqueio(
-            activity = activity, // Passe a activity recebida
+            activity = activity,
             viewModel = authViewModel,
             onDesbloqueado = {
                 appDesbloqueado = true
@@ -78,7 +80,7 @@ fun AppPrincipal(
 ) {
     Scaffold(
         floatingActionButton = {
-            if (viewModel.abaSelecionada == 0 && !viewModel.exibeModalNovoLancamento) {
+            if (viewModel.abaSelecionada == 0 && !viewModel.exibeModalLancamento) {
                 FloatingActionButton(onClick = { viewModel.onFabClick() }) {
                     Icon(Icons.Default.Add, contentDescription = "Adicionar Lançamento")
                 }
@@ -111,10 +113,11 @@ fun AppPrincipal(
                 2 -> TelaConversor(viewModel = viewModel)
             }
 
-            if (viewModel.exibeModalNovoLancamento) {
-                TelaNovoLancamento(
+            if (viewModel.exibeModalLancamento) {
+                TelaFormularioLancamento(
                     viewModel = viewModel,
-                    onFechar = { viewModel.onFecharModal() }
+                    onFechar = { viewModel.onFecharModal() },
+                    lancamentoId = viewModel.idLancamentoAberto
                 )
             }
         }

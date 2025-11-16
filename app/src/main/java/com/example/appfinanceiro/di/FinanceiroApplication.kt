@@ -1,4 +1,4 @@
-package com.example.appfinanceiro.data
+package com.example.appfinanceiro.di
 
 import android.app.Application
 
