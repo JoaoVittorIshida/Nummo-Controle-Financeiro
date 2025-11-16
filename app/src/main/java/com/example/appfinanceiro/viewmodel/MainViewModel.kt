@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appfinanceiro.data.entity.Cotacao
 import com.example.appfinanceiro.data.repository.LancamentoRepository
 import com.example.appfinanceiro.state.toUI
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.example.appfinanceiro.data.entity.Lancamento
+import com.example.appfinanceiro.data.repository.CotacaoRepository
 import com.example.appfinanceiro.state.LancamentoUI
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,10 +24,10 @@ import java.util.Date
 import java.util.Locale
 
 class MainViewModel(
-    private val lancamentoRepository: LancamentoRepository
+    private val lancamentoRepository: LancamentoRepository,
+    private val cotacaoRepository: CotacaoRepository
 ) : ViewModel() {
 
-    // --- Navegação ---
     var abaSelecionada by mutableStateOf(0)
         private set
 
@@ -46,9 +48,9 @@ class MainViewModel(
         }
     }
     fun onFabClick() {
-        idLancamentoAberto = null // Garante que é um *novo* lançamento
+        idLancamentoAberto = null
         exibeModalLancamento = true
-        resetarFormulario() // Limpa os campos antes de mostrar
+        resetarFormulario()
     }
     fun onFecharModal() {
         exibeModalLancamento = false
@@ -62,12 +64,7 @@ class MainViewModel(
         carregarDadosParaEdicao(id)
     }
 
-    // --- Flows de UI ---
     val listaDe4Lancamentos = lancamentoRepository.quatroLancamentosRecentes
-        .map { it.map { item -> item.toUI() } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
-
-    val listaCompleta = lancamentoRepository.todosLancamentos
         .map { it.map { item -> item.toUI() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
@@ -132,7 +129,7 @@ class MainViewModel(
             val filtroTipoPassou = when (tipo) {
                 "Receita" -> lancamento.tipo == "Receita"
                 "Despesa" -> lancamento.tipo == "Despesa"
-                else -> true // "Todos"
+                else -> true
             }
             calendarInstance.timeInMillis = lancamento.data
             val mesDoLancamento = calendarInstance.get(Calendar.MONTH)
@@ -146,25 +143,11 @@ class MainViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-
-    // --- Conversor ---
-    var convValorEntrada by mutableStateOf("")
-    var convMoedaDe by mutableStateOf("BRL")
-    var convMoedaPara by mutableStateOf("USD")
-    var convResultado by mutableStateOf("0.00")
-        private set
-
-
-    // --- Formulário ---
     var formTipo by mutableStateOf("Entrada")
     var formValor by mutableStateOf("")
     var formDescricao by mutableStateOf("")
     var formData by mutableStateOf(System.currentTimeMillis())
     var formObservacoes by mutableStateOf("")
-
-    private fun getDataAtual(): Long {
-        return Calendar.getInstance().timeInMillis
-    }
 
     fun resetarFormulario() {
         formTipo = "Despesa"
@@ -266,10 +249,80 @@ class MainViewModel(
         }
     }
 
-    fun onCalcularConversao() {
-        val taxa = 0.18
-        val valor = convValorEntrada.toDoubleOrNull() ?: 0.0
-        convResultado = "%.2f".format(valor * taxa)
+    private val _convValorEntrada = MutableStateFlow("")
+    val convValorEntrada: StateFlow<String> = _convValorEntrada
+
+    private val _convMoedaDe = MutableStateFlow("BRL")
+    val convMoedaDe: StateFlow<String> = _convMoedaDe
+
+    private val _convMoedaPara = MutableStateFlow("USD")
+    val convMoedaPara: StateFlow<String> = _convMoedaPara
+
+    init {
+        buscarCotacoesEmSegundoPlano()
     }
+
+    private fun buscarCotacoesEmSegundoPlano() {
+        viewModelScope.launch {
+            cotacaoRepository.atualizarCotacoes()
+        }
+    }
+
+    val cotacaoAtual: StateFlow<Cotacao?> = cotacaoRepository.cotacaoMaisRecente
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = null
+        )
+
+    fun onConvValorChange(novoValor: String) {
+        _convValorEntrada.value = novoValor
+    }
+
+    fun onConvMoedaDeChange(novaMoeda: String) {
+        _convMoedaDe.value = novaMoeda
+    }
+
+    fun onConvMoedaParaChange(novaMoeda: String) {
+        _convMoedaPara.value = novaMoeda
+    }
+    val convResultado: StateFlow<String> = combine(
+        _convValorEntrada,
+        _convMoedaDe,
+        _convMoedaPara,
+        cotacaoAtual
+    ) { valorStr, moedaDe, moedaPara, cotacoes ->
+
+        val valor = valorStr.toDoubleOrNull() ?: 0.0
+
+        if (valor == 0.0) {
+            "0.00"
+        } else if (cotacoes == null || cotacoes.dolar == 0.0 || cotacoes.euro == 0.0) {
+            "..."
+        } else {
+            val taxaDolar = cotacoes.dolar
+            val taxaEuro = cotacoes.euro
+
+            val valorEmBRL = when (moedaDe) {
+                "USD" -> valor * taxaDolar
+                "EUR" -> valor * taxaEuro
+                "BRL" -> valor
+                else -> 0.0
+            }
+
+            val resultadoFinal = when (moedaPara) {
+                "USD" -> valorEmBRL / taxaDolar
+                "EUR" -> valorEmBRL / taxaEuro
+                "BRL" -> valorEmBRL
+                else -> 0.0
+            }
+            "%.2f".format(resultadoFinal)
+        }
+
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = "0.00"
+    )
 }
 

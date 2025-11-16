@@ -46,7 +46,6 @@ class AuthViewModel(private val usuarioRepository: UsuarioRepository) : ViewMode
             return
         }
 
-        //Se todas as validações passaram, limpa a mensagem de erro e insere o usuário
         mensagemErro = null
         viewModelScope.launch {
             val novoUsuario = Usuario(
@@ -69,20 +68,15 @@ class AuthViewModel(private val usuarioRepository: UsuarioRepository) : ViewMode
 
     fun onBiometriaClick(activity: FragmentActivity, onSuccess: () -> Unit) {
 
-        // 1. Executor (necessário para o callback)
         val executor = ContextCompat.getMainExecutor(activity)
-
-        // 2. Callback (o que fazer em caso de sucesso ou erro)
         val callback = object : BiometricPrompt.AuthenticationCallback() {
 
-            // SUCESSO
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
                 mensagemErro = null
                 onSuccess()
             }
 
-            // ERRO
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 super.onAuthenticationError(errorCode, errString)
                 if (errorCode != BiometricPrompt.ERROR_USER_CANCELED) {

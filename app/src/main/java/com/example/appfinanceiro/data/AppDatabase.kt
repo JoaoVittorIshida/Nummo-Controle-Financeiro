@@ -33,8 +33,6 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 )
-                    // PERMITE CONSULTAS NA THREAD PRINCIPAL (SOLUÇÃO TEMPORÁRIA)
-                    .allowMainThreadQueries()
                     .build()
 
                 INSTANCE = instance

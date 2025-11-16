@@ -12,17 +12,16 @@ object AppViewModelProvider {
 
     val Factory = viewModelFactory {
 
-        // AuthViewModel
         initializer {
             AuthViewModel(
                 usuarioRepository = financeiroApplication().container.usuarioRepository
             )
         }
 
-        // MainViewModel
         initializer {
             MainViewModel(
-                lancamentoRepository = financeiroApplication().container.lancamentoRepository
+                lancamentoRepository = financeiroApplication().container.lancamentoRepository,
+                cotacaoRepository = financeiroApplication().container.cotacaoRepository
             )
         }
     }

@@ -15,6 +15,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,8 +30,12 @@ import com.example.appfinanceiro.viewmodel.MainViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaConversor(
-    viewModel: MainViewModel // Recebe o Cérebro
+    viewModel: MainViewModel
 ) {
+    val valorEntrada by viewModel.convValorEntrada.collectAsState()
+    val moedaDe by viewModel.convMoedaDe.collectAsState()
+    val moedaPara by viewModel.convMoedaPara.collectAsState()
+    val resultado by viewModel.convResultado.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,10 +47,11 @@ fun TelaConversor(
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 24.dp)
         )
-
         OutlinedTextField(
-            value = viewModel.convValorEntrada,
-            onValueChange = { viewModel.convValorEntrada = it },
+            value = valorEntrada,
+            onValueChange = { novoValor ->
+                viewModel.onConvValorChange(novoValor)
+            },
             label = { Text("Valor para converter") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
@@ -54,29 +61,21 @@ fun TelaConversor(
         Text("De:", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
         SeletorDeMoeda(
-            moedaSelecionada = viewModel.convMoedaDe, // Lendo do VM
-            onMoedaChange = { viewModel.convMoedaDe = it } // Escrevendo no VM
+            moedaSelecionada = moedaDe,
+            onMoedaChange = { novaMoeda ->
+                viewModel.onConvMoedaDeChange(novaMoeda)
+            }
         )
-
         Spacer(modifier = Modifier.height(24.dp))
-
         Text("Para:", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
         SeletorDeMoeda(
-            moedaSelecionada = viewModel.convMoedaPara, // Lendo do VM
-            onMoedaChange = { viewModel.convMoedaPara = it } // Escrevendo no VM
+            moedaSelecionada = moedaPara,
+            onMoedaChange = { novaMoeda ->
+                viewModel.onConvMoedaParaChange(novaMoeda)
+            }
         )
-
-        // Botão para calcular
-        Button(
-            onClick = { viewModel.onCalcularConversao() }, // Avisa o VM
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("CALCULAR")
-        }
-
         Spacer(modifier = Modifier.height(32.dp))
-
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -90,7 +89,7 @@ fun TelaConversor(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    "${viewModel.convResultado} ${viewModel.convMoedaPara}", // Lendo do VM
+                    "$resultado $moedaPara",
                     style = MaterialTheme.typography.displaySmall
                 )
             }

@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">AppFinanceiro</string>
+    <string name="app_name">Nummo - Controle Financeiro</string>
+    <string name="app_name_short">Nummo</string>
 </resources>

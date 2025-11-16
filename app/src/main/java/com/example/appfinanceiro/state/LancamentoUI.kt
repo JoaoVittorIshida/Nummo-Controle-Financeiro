@@ -14,7 +14,6 @@ data class LancamentoUI(
 )
 fun Lancamento.toUI(): LancamentoUI {
 
-    // Conversor Long → "dd/MM/yyyy"
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dataFormatada = Instant.ofEpochMilli(data)
         .atZone(ZoneId.systemDefault())
