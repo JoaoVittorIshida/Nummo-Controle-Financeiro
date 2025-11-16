@@ -50,9 +50,12 @@ fun CardLancamento(
                 .padding(16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+
+                modifier = Modifier.weight(1f)
+            ) {
                 Icon(
                     imageVector = icone,
                     contentDescription = tipo,
@@ -74,11 +77,14 @@ fun CardLancamento(
                     )
                 }
             }
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "R$ ${"%.2f".format(valor)}",
                 fontWeight = FontWeight.Bold,
                 color = corValor,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                // BÔNUS: Garante que o *valor* nunca quebre em duas linhas
+                maxLines = 1
             )
         }
     }

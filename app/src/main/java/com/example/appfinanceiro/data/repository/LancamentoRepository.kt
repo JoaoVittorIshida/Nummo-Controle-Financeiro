@@ -10,7 +10,7 @@ class LancamentoRepository(private val lancamentoDao: LancamentoDao) {
 
     val todosLancamentos: Flow<List<Lancamento>> = lancamentoDao.getTodosLancamentos()
 
-    val tresLancamentosRecentes: Flow<List<Lancamento>> = lancamentoDao.getTresLancamentosMaisRecentes()
+    val quatroLancamentosRecentes: Flow<List<Lancamento>> = lancamentoDao.getQuatroLancamentosMaisRecentes()
 
     suspend fun inserirLancamento(lancamento: Lancamento) {
         lancamentoDao.inserirLancamento(lancamento)

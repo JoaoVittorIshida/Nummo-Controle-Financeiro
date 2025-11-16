@@ -50,7 +50,7 @@ fun Context.findFragmentActivity(): FragmentActivity? {
 fun TelaInicio(
     viewModel: MainViewModel
 ) {
-    val lista3Lancamentos by viewModel.listaDe3Lancamentos.collectAsState()
+    val lista4Lancamentos by viewModel.listaDe4Lancamentos.collectAsState()
     val saldoMes by viewModel.saldoDoMes.collectAsState()
     LazyColumn(
         modifier = Modifier.padding(16.dp)
@@ -77,7 +77,7 @@ fun TelaInicio(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
-        items(lista3Lancamentos) { lancamento ->
+        items(lista4Lancamentos) { lancamento ->
             CardLancamento(
                 tipo = lancamento.tipo,
                 descricao = lancamento.descricao,

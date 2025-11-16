@@ -42,7 +42,7 @@ class MainViewModel(
     }
 
     // --- Flows de UI ---
-    val listaDe3Lancamentos = lancamentoRepository.tresLancamentosRecentes
+    val listaDe4Lancamentos = lancamentoRepository.quatroLancamentosRecentes
         .map { it.map { item -> item.toUI() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
