@@ -153,7 +153,7 @@ class MainViewModel(
         formTipo = "Despesa"
         formValor = ""
         formDescricao = ""
-        formData = System.currentTimeMillis() // já retorna timestamp atual
+        formData = System.currentTimeMillis()
         formObservacoes = ""
         mensagemErroLancamento = ""
     }

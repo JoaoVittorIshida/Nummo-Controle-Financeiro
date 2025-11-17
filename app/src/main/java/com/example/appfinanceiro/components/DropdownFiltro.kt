@@ -23,7 +23,7 @@ fun DropdownFiltro(
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var expandido by remember { mutableStateOf(false) } // OK ter remember aqui (estado de UI)
+    var expandido by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
         expanded = expandido,

@@ -52,7 +52,7 @@ fun TelaExtrato(
             DropdownFiltro(
                 label = "Mês",
                 opcoes = viewModel.nomeDosMeses.toList(),
-                selecionado = mesSelecionado, // <-- MUDANÇA 3
+                selecionado = mesSelecionado,
                 onSelect = { novoMes ->
                     viewModel.onFiltroMesChange(novoMes)
                 },

@@ -89,7 +89,7 @@ fun TelaFormularioLancamento(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(titulo, style = MaterialTheme.typography.headlineMedium) // MUDANÇA: Título dinâmico
+                Text(titulo, style = MaterialTheme.typography.headlineMedium)
                 IconButton(onClick = onFechar) {
                     Icon(Icons.Default.Close, contentDescription = "Fechar")
                 }

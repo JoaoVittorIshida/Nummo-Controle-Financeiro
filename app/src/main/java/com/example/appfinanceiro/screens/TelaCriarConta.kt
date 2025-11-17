@@ -52,8 +52,8 @@ fun TelaCriarConta(
             Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedTextField(
-                value = viewModel.nome, // Lendo do VM
-                onValueChange = { viewModel.nome = it }, // Escrevendo no VM
+                value = viewModel.nome,
+                onValueChange = { viewModel.nome = it },
                 label = { Text("Seu Nome") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -61,15 +61,15 @@ fun TelaCriarConta(
 
             CampoSenhaTextField(
                 label = "Senha (PIN de 4 dígitos)",
-                valor = viewModel.senha, // Lendo do VM
-                onValorChange = { viewModel.senha = it } // Escrevendo no VM
+                valor = viewModel.senha,
+                onValorChange = { viewModel.senha = it }
             )
             Spacer(modifier = Modifier.height(16.dp))
 
             CampoSenhaTextField(
                 label = "Confirmar Senha (PIN)",
-                valor = viewModel.confirmarSenha, // Lendo do VM
-                onValorChange = { viewModel.confirmarSenha = it } // Escrevendo no VM
+                valor = viewModel.confirmarSenha,
+                onValorChange = { viewModel.confirmarSenha = it }
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -87,8 +87,8 @@ fun TelaCriarConta(
                 modifier = Modifier.fillMaxWidth().clickable { viewModel.usarBiometria = !viewModel.usarBiometria }
             ) {
                 Checkbox(
-                    checked = viewModel.usarBiometria, // Lendo do VM
-                    onCheckedChange = { viewModel.usarBiometria = it } // Escrevendo no VM
+                    checked = viewModel.usarBiometria,
+                    onCheckedChange = { viewModel.usarBiometria = it }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Usar digital para desbloquear")
@@ -97,7 +97,7 @@ fun TelaCriarConta(
 
             Button(
                 onClick = {
-                    viewModel.onCriarContaClick() // Avisa o VM
+                    viewModel.onCriarContaClick()
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {

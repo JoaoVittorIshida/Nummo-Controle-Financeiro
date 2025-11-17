@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 
 class CotacaoRepository(
     private val cotacaoDao: CotacaoDao,
-    private val apiService: ApiService // 2. Adicione o ApiService ao construtor
+    private val apiService: ApiService
 ) {
 
     val cotacaoMaisRecente: Flow<Cotacao?> = cotacaoDao.getCotacaoMaisRecente()
