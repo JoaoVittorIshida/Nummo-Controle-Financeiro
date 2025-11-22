@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.data.entity.Cotacao
 import com.example.appfinanceiro.data.repository.LancamentoRepository
 import com.example.appfinanceiro.state.toUI
@@ -13,8 +14,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.example.appfinanceiro.data.entity.Lancamento
+import com.example.appfinanceiro.data.entity.Usuario
 import com.example.appfinanceiro.data.repository.CotacaoRepository
+import com.example.appfinanceiro.data.repository.UsuarioRepository
 import com.example.appfinanceiro.state.LancamentoUI
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -25,7 +29,8 @@ import java.util.Locale
 
 class MainViewModel(
     private val lancamentoRepository: LancamentoRepository,
-    private val cotacaoRepository: CotacaoRepository
+    private val cotacaoRepository: CotacaoRepository,
+    private val usuarioRepository: UsuarioRepository
 ) : ViewModel() {
 
     var abaSelecionada by mutableStateOf(0)
@@ -40,6 +45,18 @@ class MainViewModel(
     var mensagemErroLancamento by mutableStateOf<String?>(null)
         private set
 
+    var usuarioLogado by mutableStateOf<String?>("")
+        private set
+
+    fun carregarUsuarioLogado(){
+        viewModelScope.launch {
+            val usuarioObtido = usuarioRepository.getUsuarioLogado()
+
+            if(usuarioObtido != null){
+                usuarioLogado = usuarioObtido.nome
+            }
+        }
+    }
 
     fun onAbaSelecionada(index: Int) {
         abaSelecionada = index
@@ -64,21 +81,41 @@ class MainViewModel(
         carregarDadosParaEdicao(id)
     }
 
-    val listaDe4Lancamentos = lancamentoRepository.quatroLancamentosRecentes
+
+    val listaDe3Lancamentos = lancamentoRepository.tresLancamentosRecentes
         .map { it.map { item -> item.toUI() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    val saldoDoMes: StateFlow<Double> = lancamentoRepository.todosLancamentos
+    val saldoTotal: StateFlow<Double> = lancamentoRepository.todosLancamentos
+        .map { lista ->
+            val diaAtual = (Calendar.getInstance()).timeInMillis
+
+            lista.filter { lancamento ->
+                lancamento.data <= diaAtual
+            }.sumOf { lancamento ->
+                if (lancamento.tipo == "Receita") lancamento.valor
+                else -lancamento.valor
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), 0.0)
+
+    val saldoPrevistoDoMes: StateFlow<Double> = lancamentoRepository.todosLancamentos
         .map { lista ->
             val calendar = Calendar.getInstance()
             val mesSelecionado = calendar.get(Calendar.MONTH)
             val anoSelecionado = calendar.get(Calendar.YEAR)
+            val diaAtual = (Calendar.getInstance()).timeInMillis
+
 
             lista.filter { lancamento ->
                 calendar.timeInMillis = lancamento.data
                 val mes = calendar.get(Calendar.MONTH)
                 val ano = calendar.get(Calendar.YEAR)
-                mes == mesSelecionado && ano == anoSelecionado
+
+                if(lancamento.data > diaAtual)
+                    mes == mesSelecionado && ano == anoSelecionado
+                else
+                    true
+
             }.sumOf { lancamento ->
                 if (lancamento.tipo == "Receita") lancamento.valor
                 else -lancamento.valor
@@ -260,6 +297,7 @@ class MainViewModel(
 
     init {
         buscarCotacoesEmSegundoPlano()
+        carregarUsuarioLogado()
     }
 
     private fun buscarCotacoesEmSegundoPlano() {
@@ -274,6 +312,7 @@ class MainViewModel(
             started = SharingStarted.Eagerly,
             initialValue = null
         )
+
 
     fun onConvValorChange(novoValor: String) {
         _convValorEntrada.value = novoValor

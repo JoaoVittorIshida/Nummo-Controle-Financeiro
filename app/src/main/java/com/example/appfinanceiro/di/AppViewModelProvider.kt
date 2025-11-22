@@ -21,7 +21,8 @@ object AppViewModelProvider {
         initializer {
             MainViewModel(
                 lancamentoRepository = financeiroApplication().container.lancamentoRepository,
-                cotacaoRepository = financeiroApplication().container.cotacaoRepository
+                cotacaoRepository = financeiroApplication().container.cotacaoRepository,
+                usuarioRepository = financeiroApplication().container.usuarioRepository
             )
         }
     }

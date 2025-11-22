@@ -26,6 +26,6 @@ interface LancamentoDao {
     @Query("SELECT * FROM lancamentos ORDER BY data DESC")
     fun getTodosLancamentos(): Flow<List<Lancamento>>
 
-    @Query("SELECT * FROM lancamentos ORDER BY data DESC LIMIT 4")
-    fun getQuatroLancamentosMaisRecentes(): Flow<List<Lancamento>>
+    @Query("SELECT * FROM lancamentos ORDER BY id_lancamento DESC LIMIT 3")
+    fun getTresLancamentosMaisRecentes(): Flow<List<Lancamento>>
 }

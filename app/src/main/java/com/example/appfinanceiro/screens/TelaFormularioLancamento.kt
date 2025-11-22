@@ -14,7 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,6 +44,7 @@ import com.example.appfinanceiro.components.SeletorDeTipo
 import com.example.appfinanceiro.ui.theme.AppFinanceiroTheme
 import com.example.appfinanceiro.viewmodel.MainViewModel
 import java.util.Calendar
+import kotlin.io.encoding.Base64
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,17 +108,17 @@ fun TelaFormularioLancamento(
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
-                value = viewModel.formValor,
-                onValueChange = { viewModel.formValor = it },
-                label = { Text("Valor (R$)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                value = viewModel.formDescricao,
+                onValueChange = { viewModel.formDescricao = it },
+                label = { Text("Descrição") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
-                value = viewModel.formDescricao,
-                onValueChange = { viewModel.formDescricao = it },
-                label = { Text("Descrição") },
+                value = viewModel.formValor,
+                onValueChange = { viewModel.formValor = it },
+                label = { Text("Valor (R$)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -173,7 +178,7 @@ fun TelaFormularioLancamento(
                         ),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                     ) {
-                        Text("EXCLUIR")
+                        Icon(Icons.Default.Delete, contentDescription = "Excluir")
                     }
 
                     Button(
@@ -184,7 +189,7 @@ fun TelaFormularioLancamento(
                             .weight(1f)
                             .height(50.dp)
                     ) {
-                        Text("SALVAR EDIÇÃO")
+                        Icon(Icons.Default.Edit, contentDescription  = "Salvar Edição")
                     }
                 }
             } else {
@@ -196,7 +201,7 @@ fun TelaFormularioLancamento(
                         .fillMaxWidth()
                         .height(50.dp)
                 ) {
-                    Text("SALVAR LANÇAMENTO")
+                    Icon(Icons.Default.Check, contentDescription = "Adicionar Lançamento")
                 }
             }
         }

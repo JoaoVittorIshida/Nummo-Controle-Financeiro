@@ -13,4 +13,8 @@ class UsuarioRepository(private val usuarioDao: UsuarioDao) {
         usuarioDao.inserirUsuario(usuario)
     }
 
+    suspend fun getUsuarioLogado(): Usuario? {
+        return usuarioDao.getUsuarioLogado()
+    }
+
 }

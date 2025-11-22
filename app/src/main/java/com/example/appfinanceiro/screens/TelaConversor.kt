@@ -36,6 +36,7 @@ fun TelaConversor(
     val moedaDe by viewModel.convMoedaDe.collectAsState()
     val moedaPara by viewModel.convMoedaPara.collectAsState()
     val resultado by viewModel.convResultado.collectAsState()
+    val cotacaoAtual by viewModel.cotacaoAtual.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -93,6 +94,23 @@ fun TelaConversor(
                     style = MaterialTheme.typography.displaySmall
                 )
             }
+        }
+        if(cotacaoAtual == null){
+            Text(
+                text = "Não há cotações disponíveis. Conecte-se a internet e reinicie o aplicativo!",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(16.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+        }
+        else{
+            Text(
+                text = "Última cotação obtida: " + viewModel.formatarData(cotacaoAtual!!.horario),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(16.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
         }
     }
 }

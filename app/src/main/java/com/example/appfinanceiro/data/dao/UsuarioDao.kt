@@ -20,4 +20,7 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM usuario LIMIT 1")
     fun getPrimeiroUsuario(): Flow<Usuario?>
+
+    @Query("SELECT * FROM usuario LIMIT 1")
+    suspend fun getUsuarioLogado(): Usuario?
 }

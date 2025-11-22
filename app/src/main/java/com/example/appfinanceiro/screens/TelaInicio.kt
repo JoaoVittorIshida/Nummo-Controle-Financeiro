@@ -24,11 +24,21 @@ import com.example.appfinanceiro.viewmodel.MainViewModel
 fun TelaInicio(
     viewModel: MainViewModel
 ) {
-    val lista4Lancamentos by viewModel.listaDe4Lancamentos.collectAsState()
-    val saldoMes by viewModel.saldoDoMes.collectAsState()
+    val lista3Lancamentos by viewModel.listaDe3Lancamentos.collectAsState()
+    val saldoMes by viewModel.saldoTotal.collectAsState()
+    val saldoPrevisto by viewModel.saldoPrevistoDoMes.collectAsState()
+    val usuarioLogado = viewModel.usuarioLogado
+
     LazyColumn(
         modifier = Modifier.padding(16.dp)
     ) {
+        item {
+            Text(
+                text = "Bem vindo $usuarioLogado!",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 2.dp ,bottom = 8.dp)
+            )
+        }
         item {
             Card(
                 modifier = Modifier
@@ -39,8 +49,12 @@ fun TelaInicio(
                 )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Saldo do Mês", style = MaterialTheme.typography.titleMedium)
+                    Text("Saldo Total Atual", style = MaterialTheme.typography.titleMedium)
                     Text("R$ %.2f".format(saldoMes), style = MaterialTheme.typography.displaySmall)
+                }
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Saldo Previsto no Final do Mês", style = MaterialTheme.typography.titleMedium)
+                    Text("R$ %.2f".format(saldoPrevisto), style = MaterialTheme.typography.displaySmall)
                 }
             }
         }
@@ -51,7 +65,7 @@ fun TelaInicio(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
-        items(lista4Lancamentos) { lancamentoUi ->
+        items(lista3Lancamentos) { lancamentoUi ->
             CardLancamento(
                 lancamento = lancamentoUi,
                 onClick = { idDoLancamento ->

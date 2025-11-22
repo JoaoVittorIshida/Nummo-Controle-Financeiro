@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -94,7 +95,7 @@ fun AppPrincipal(
                         icon = {
                             when (index) {
                                 0 -> Icon(Icons.Default.Home, contentDescription = texto)
-                                1 -> Icon(Icons.Default.List, contentDescription = texto)
+                                1 -> Icon(Icons.AutoMirrored.Filled.List, contentDescription = texto)
                                 2 -> Icon(Icons.Default.Settings, contentDescription = texto)
                             }
                         },
